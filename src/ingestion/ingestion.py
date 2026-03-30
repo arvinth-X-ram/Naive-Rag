@@ -18,7 +18,7 @@
 
 import os
 from dotenv import load_dotenv
-from langchain_community.document_loaders import UnstructuredPDFLoader,TextLoader,UnstructuredWordDocumentLoader
+from langchain_community.document_loaders import UnstructuredPDFLoader,TextLoader,UnstructuredWordDocumentLoader,PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_postgres import PGVector
@@ -33,7 +33,7 @@ def load_document(file_path):
     ext = os.path.splitext(file_path)[-1].lower()
 
     if ext == ".pdf":
-        loader = UnstructuredPDFLoader(file_path)
+        loader = PyPDFLoader(file_path)
     elif ext == ".txt":
         loader = TextLoader(file_path, encoding="utf-8")
     elif ext == ".docx" or ext == ".doc":
@@ -47,7 +47,7 @@ def load_document(file_path):
 def ingest_pdf(file_path):
     # loader = UnstructuredPDFLoader(file_path)
     # docs = loader.load()
-    docs,ext = load_document(file_path),ext
+    docs,ext = load_document(file_path)
     print("Pages: " +  str(len(docs)))
 
     for doc in docs:
