@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
+
+
 class QueryRequest(BaseModel):
     query: str = Field(...,description = "User query")
     # k:int = Field(default=5, ge=1, le=20, description="Top-k results")

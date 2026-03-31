@@ -1,22 +1,22 @@
 [project]
-name = "naive-rag"
+name = "naive-rag-backend"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "Backend service for RAG inference"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.135.2",
+    "uvicorn>=0.42.0",
     "langchain>=1.2.13",
-    "langchain-classic>=1.0.3",
     "langchain-community>=0.4.1",
     "langchain-google-genai>=4.2.1",
     "langchain-postgres>=0.0.17",
     "langchain-text-splitters>=1.1.1",
     "pdfminer-six>=20260107",
+    "protobuf>=4.25.1",
     "pypdf>=6.9.2",
     "python-dotenv>=1.2.2",
-    "streamlit>=1.9.0",
     "unstructured-inference>=1.5.3",
     "unstructured[pdf]>=0.22.6",
-    "uvicorn>=0.42.0",
+    "pandas>=3.0.0",
+    "python-multipart>=0.0.9",
 ]

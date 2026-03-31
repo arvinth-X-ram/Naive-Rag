@@ -1,34 +1,43 @@
-from fastapi import APIRouter, Depends
-from src.core.db import get_vector_store,get_db
-from src.api.v1.schema.query_schema import QueryRequest,QueryResponse,ClientCreate
-from src.api.v1.agents.agents import agents
-from sqlalchemy.orm import Session
-from src.api.v1.services.db_service import credit_assess_db, get_profile_db
+from fastapi import APIRouter, UploadFile, File
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+import os
 
+from src.ingestion.ingestion import ingest_pdf, get_vector_store
 
 router = APIRouter()
 
-@router.post("/query",response_model=QueryResponse)
-def query_endpoint(request: QueryRequest):
+UPLOAD_DIR = "uploaded_pdfs"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    docs = agents(request.query)
-    return{
-        'query':request.query,
-        # 'result':[
-        #     {
-        #         'content':doc.page_content,
-        #         'metadata':doc.metadata,
-        #     }
-        #     for doc in docs
-        # ]      
-        'result': docs["messages"][-1].text
-    }
+class QueryRequest(BaseModel):
+    query: str
+    top_k: int = 5
 
-@router.post("/credit/assess")
-def credit_assess(request: ClientCreate, db: Session = Depends(get_db)):
-    new_p = credit_assess_db(request,db)
-    return new_p
+class QueryResponse(BaseModel):
+    answer: str
+    results: list[str]
 
-@router.get("/credit/{profile_id}")
-def get_profile(profile_id: str, db: Session = Depends(get_db)):
-    return get_profile_db(profile_id,db)
+@router.post("/admin/upload")
+async def upload_pdf(file: UploadFile = File(...)):
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
+
+    # Chunk + embed PDF
+    ingest_pdf(file_path)
+
+    return {"file": file.filename, "message": "Upload and embedding successful"}
+'''
+@router.post("/query", response_model=QueryResponse)
+async def query_docs(request: QueryRequest):
+    vector_store = get_vector_store()
+    if vector_store is None:
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "No PDF has been uploaded yet by admin."}
+        )
+
+    answer, results = run_query(request.query, vector_store, top_k=request.top_k)
+    return {"answer": answer, "results": results}
+'''

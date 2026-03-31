@@ -1,0 +1,11 @@
+[project]
+name = "naive-rag-frontend"
+version = "0.1.0"
+description = "Streamlit UI for RAG"
+requires-python = ">=3.13"
+dependencies = [
+    "streamlit>=1.30.0",
+    "protobuf>=4.25.1",
+    "pandas<3",
+    "python-dotenv>=1.2.2"
+]
