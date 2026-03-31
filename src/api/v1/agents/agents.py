@@ -8,25 +8,32 @@ from src.api.v1.tools.vector_search_tool import query_documents
 from src.api.v1.schema.query_schema import QueryResponse
 import json
 from langchain_classic.memory import ConversationBufferMemory
+from pydantic import BaseModel, Field
 
-
+class AIResponse(BaseModel):
+    query: str = Field(description="The Given query by user must be present here")
+    answer: str = Field(description="The generated response")
+    policy_citations: str = Field(description="Give the Policy Citation")
+    page_no: str = Field(description="The page number in the metadata")
+    document_name: str = Field(description="Name of the document used")
 
 load_dotenv(override = True)
 
 my_agent = create_agent(
     model = "google_genai:gemini-3.1-pro-preview",
     tools = [fts_search,_hybrid_search,query_documents],
-    response_format = QueryResponse,
+    # response_format = QueryResponse,
+    response_format = AIResponse,
     system_prompt = """
     You are an HR RAG (Retrieval-Augmented Generation) assistant.
-    Your ONLY responsibility is to answer HRrelated questions using the provided knowledge base through the available retrieval tools.
+    Your ONLY responsibility is to answer HR related questions using the provided knowledge base through the available retrieval tools.
     You must NOT perform any other task, role, or general conversation beyond this scope.
 
 DOMAIN & SCOPE
-• You answer ONLY HRrelated questions (e.g., policies, benefits, leave, payroll, attendance, code of conduct, hiring, exit process, HR contacts).
+• You answer ONLY HR related questions (e.g., policies, benefits, leave, payroll, attendance, code of conduct, hiring, exit process, HR contacts).
 • You must rely exclusively on retrieved information from the vector database.
 • Do NOT use external knowledge, assumptions, or general HR advice.
-• If the question is NOT HRrelated or cannot be answered using retrieved content, respond with:
+• If the question is NOT HR related or cannot be answered using retrieved content, respond with:
   “Im unable to answer this as it is outside my HR knowledge base.”
 AVAILABLE TOOLS
 You have exactly three retrieval tools:
@@ -142,48 +149,6 @@ In such cases, set:
 """
 )
 
-def fallback_response(query: str) -> QueryResponse:
-    return QueryResponse(
-        query=query,
-        answer="I am unable to answer this as it is outside my HR knowledge base.",
-        policy_citations="N/A",
-        page_no="N/A",
-        document_name="N/A"
-    )
-
-import json
-from src.api.v1.schema.query_schema import QueryResponse
-
-def parse_agent_response(response, user_query: str) -> QueryResponse:
-    try:
-        ai_message = response["messages"][-1]
-        content = ai_message.content
-
-        # 1. Gemini often returns a list
-        if isinstance(content, list):
-            content = content[0]
-
-        # 2. Text wrapped JSON
-        if isinstance(content, dict) and "text" in content:
-            content_text = content["text"].strip()
-
-            # Model gave plain text like "invalid query"
-            if not content_text.startswith("{"):
-                return fallback_response(user_query)
-
-            content = json.loads(content_text)
-
-        # 3. Must be a dict
-        if not isinstance(content, dict):
-            return fallback_response(user_query)
-
-        # 4. Validate schema strictly
-        return QueryResponse(**content)
-
-    except Exception:
-        # Absolute safety net
-        return fallback_response(user_query)
-
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 def agents(query):
@@ -192,12 +157,25 @@ def agents(query):
 
     messages = existing_history + [{"role": "user", "content": query}]
 
-    response = my_agent.invoke({"messages": messages})
+    response = my_agent.invoke({"messages": messages},config={
+            "tags": ["CREDIT_RAG_AGENT"],
+            "metadata": {
+                "user_id": "user_001",
+                "feature": "Can able to perform vector,fts and hybrid search to retrive doccuments.",
+                "env": "dev"
+            },
+            "run_name": "CREDIT_RAG_RUN"
+
+        })
 
     response_text = response["messages"][-1].content
 
     memory.save_context({"input": query}, {"output": response_text})
 
-    print(response["messages"][-1].text)
+    result: AIResponse = response["structured_response"]
 
-    return parse_agent_response(response, query)
+    result_dict = result.model_dump()
+
+    print(result_dict)
+
+    return result_dict
