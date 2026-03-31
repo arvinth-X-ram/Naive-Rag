@@ -84,5 +84,5 @@ def ingest_pdf(file_path):
     # vector_store.add_documents(chunks)
     print("Ingestion completed")
 
-if __name__ == "__main__":
-    ingest_pdf(r"data\HR_Support_Desk_KnowledgeBase.pdf")
+# if __name__ == "__main__":
+#     ingest_pdf(r"data\HR_Support_Desk_KnowledgeBase.pdf")
