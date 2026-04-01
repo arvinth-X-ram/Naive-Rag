@@ -52,11 +52,20 @@ if st.button("Submit Query"):
                 data = response.json()
                 st.subheader("Answer")
                 st.write(data["answer"])
+
+                st.subheader("Policy citation")
+                st.write(data["policy_citations"])
+
+                st.subheader("Page No.")
+                st.write(data["page_no"])
+
+                st.subheader("Document Name")
+                st.write(data["document_name"])
                 
-                st.subheader("Top Results")
-                for idx, result in enumerate(data["results"], start=1):
-                    st.markdown(f"**{idx}. {result}**")
-            else:
-                st.error(f"Query failed: {response.json().get('detail', 'Unknown error')}")
+            #     st.subheader("Top Results")
+            #     for idx, result in enumerate(data["results"], start=1):
+            #         st.markdown(f"**{idx}. {result}**")
+            # else:
+            #     st.error(f"Query failed: {response.json().get('detail', 'Unknown error')}")
         except Exception as e:
             st.error(f"Error: {str(e)}")

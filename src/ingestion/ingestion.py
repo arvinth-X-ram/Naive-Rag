@@ -78,11 +78,11 @@ def ingest_pdf(file_path):
     #     connection = PG_CONNECTION,
     #     embeddings =embeddings
     # )
-    vector_store = get_vector_store("hr_support_desk")
+    vector_store = get_vector_store("credit_risk_rag")
     vector_store.add_documents(chunks)
 
     # vector_store.add_documents(chunks)
     print("Ingestion completed")
 
 # if __name__ == "__main__":
-#     ingest_pdf(r"data\HR_Support_Desk_KnowledgeBase.pdf")
+#     ingest_pdf(r"data\credit_kb.pdf")

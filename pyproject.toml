@@ -13,6 +13,7 @@ dependencies = [
     "langchain-postgres>=0.0.17",
     "langchain-text-splitters>=1.1.1",
     "pdfminer-six>=20260107",
+    "psycopg>=3.3.3",
     "pypdf>=6.9.2",
     "python-dotenv>=1.2.2",
     "python-multipart>=0.0.22",
