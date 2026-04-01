@@ -8,6 +8,7 @@ from src.api.v1.tools.vector_search_tool import query_documents
 from src.api.v1.schema.query_schema import QueryResponse
 import json
 from langchain_classic.memory import ConversationBufferMemory
+from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
 
 class AIResponse(BaseModel):
@@ -19,8 +20,15 @@ class AIResponse(BaseModel):
 
 load_dotenv(override = True)
 
-my_agent = create_agent(
+llm = ChatGoogleGenerativeAI(
     model = "google_genai:gemini-3.1-pro-preview",
+    temprature = 0,
+    max_token = None,
+    max_retries = 2
+)
+
+my_agent = create_agent(
+    model = llm,
     tools = [fts_search,_hybrid_search,query_documents],
     # response_format = QueryResponse,
     response_format = AIResponse,

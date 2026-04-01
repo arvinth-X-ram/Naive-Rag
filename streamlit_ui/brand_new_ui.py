@@ -64,7 +64,6 @@ def user_page():
             url = "http://127.0.0.1:8000/api/v1/query/"
             payload = {
                 "query": prompt+" "+str(user_data)
-                
             }
 
             try:

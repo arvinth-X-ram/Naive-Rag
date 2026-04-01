@@ -25,13 +25,13 @@ def get_vector_store(collection_name: str = "Credit_Rag_System"):
         embeddings=get_embeddings()
     )
 
-engine = create_engine(pg_connection)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+# engine = create_engine(pg_connection)
+# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Base = declarative_base()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
