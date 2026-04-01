@@ -78,7 +78,7 @@ def ingest_pdf(file_path):
     #     connection = PG_CONNECTION,
     #     embeddings =embeddings
     # )
-    vector_store = get_vector_store("hr_support_desk")
+    vector_store = get_vector_store("Credit_Rag_System")
     vector_store.add_documents(chunks)
 
     # vector_store.add_documents(chunks)

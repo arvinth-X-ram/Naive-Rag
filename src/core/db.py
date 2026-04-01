@@ -18,7 +18,7 @@ def get_embeddings():
     output_dimensionality=1536
     ) 
 
-def get_vector_store(collection_name: str = "hr_support_desk"):
+def get_vector_store(collection_name: str = "Credit_Rag_System"):
     return PGVector(
         collection_name=collection_name,
         connection=pg_connection,

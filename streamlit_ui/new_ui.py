@@ -53,9 +53,6 @@ if st.button("Submit Query"):
                 st.subheader("Answer")
                 st.write(data["answer"])
                 
-                st.subheader("Top Results")
-                for idx, result in enumerate(data["results"], start=1):
-                    st.markdown(f"**{idx}. {result}**")
             else:
                 st.error(f"Query failed: {response.json().get('detail', 'Unknown error')}")
         except Exception as e:
