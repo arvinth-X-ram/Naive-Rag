@@ -11,3 +11,10 @@ class QueryResponse(BaseModel):
     policy_citations : str
     page_no : str
     document_name : str 
+
+class AIResponse(BaseModel):
+    query: str = Field(description="The Given query by user must be present here")
+    answer: str = Field(description="The generated response")
+    policy_citations: str = Field(description="Give the Policy Citation")
+    page_no: str = Field(description="The page number in the metadata")
+    document_name: str = Field(description="Name of the document used")

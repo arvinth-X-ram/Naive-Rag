@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 from langchain_community.document_loaders import UnstructuredPDFLoader,TextLoader,UnstructuredWordDocumentLoader,PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_postgres import PGVector
 from src.core.db import get_vector_store
 
@@ -29,9 +30,7 @@ load_dotenv(override=True)
 PG_CONNECTION = os.getenv("SQLALCHEMY_DATABASE_URL")
 
 def load_document(file_path):
-    # Get the file extension
     ext = os.path.splitext(file_path)[-1].lower()
-
     if ext == ".pdf":
         loader = PyPDFLoader(file_path)
     elif ext == ".txt":
@@ -40,13 +39,9 @@ def load_document(file_path):
         loader = UnstructuredWordDocumentLoader(file_path)
     else:
         raise ValueError(f"Unsupported file extension: {ext}")
-
-    # Load the document into a list of LangChain 'Document' objects
     return loader.load(),ext
 
 def ingest_pdf(file_path):
-    # loader = UnstructuredPDFLoader(file_path)
-    # docs = loader.load()
     docs,ext = load_document(file_path)
     print("Pages: " +  str(len(docs)))
 
@@ -68,21 +63,14 @@ def ingest_pdf(file_path):
     chunks = splitter.split_documents(docs)
     print("Chunks: "+str(len(chunks)))
 
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model = os.getenv("GOOGLE_EMBEDDINGS_MODEL"),
-        api_key = os.getenv("GOOGLE_API_KEY")
-    )
+    # embeddings = GoogleGenerativeAIEmbeddings(
+    #     model = os.getenv("GOOGLE_EMBEDDINGS_MODEL"),
+    #     api_key = os.getenv("GOOGLE_API_KEY")
 
-    # vector_store = PGVector(
-    #     collection_name = "hr_support_desk",
-    #     connection = PG_CONNECTION,
-    #     embeddings =embeddings
-    # )
+    embeddings = OpenAIEmbeddings(
+        model = os.getenv("OPENAI_EMBEDDING_MODEL"),
+        api_key = os.getenv("OPENAI_API_KEY")
+    )
     vector_store = get_vector_store("Credit_Rag_System")
     vector_store.add_documents(chunks)
-
-    # vector_store.add_documents(chunks)
-    print("Ingestion completed")
-
-# if __name__ == "__main__":
-#     ingest_pdf(r"data\HR_Support_Desk_KnowledgeBase.pdf")
+    print("==== Ingestion completed ====")

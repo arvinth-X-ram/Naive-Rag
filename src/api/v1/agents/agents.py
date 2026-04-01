@@ -5,32 +5,23 @@ from dotenv import load_dotenv
 from src.api.v1.tools.fts_search_tool import fts_search
 from src.api.v1.tools.hybrid_search_tool import _hybrid_search
 from src.api.v1.tools.vector_search_tool import query_documents
-from src.api.v1.schema.query_schema import QueryResponse
 import json
 from langchain_classic.memory import ConversationBufferMemory
 from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
-
-class AIResponse(BaseModel):
-    query: str = Field(description="The Given query by user must be present here")
-    answer: str = Field(description="The generated response")
-    policy_citations: str = Field(description="Give the Policy Citation")
-    page_no: str = Field(description="The page number in the metadata")
-    document_name: str = Field(description="Name of the document used")
+from src.api.v1.schema.query_schema import AIResponse
 
 load_dotenv(override = True)
 
 llm = ChatGoogleGenerativeAI(
-    model = "google_genai:gemini-3.1-pro-preview",
-    temprature = 0,
-    max_token = None,
-    max_retries = 2
+    model = "gemini-3.1-pro-preview",
+    temperature = 0,
+    max_retries = 4
 )
 
 my_agent = create_agent(
     model = llm,
     tools = [fts_search,_hybrid_search,query_documents],
-    # response_format = QueryResponse,
     response_format = AIResponse,
     system_prompt = """
 You are a Credit Risk Analysis and Decisioning RAG Assistant.
@@ -42,10 +33,7 @@ using the available retrieval tools.
 You must NEVER use external knowledge, assumptions, judgment, or market practice.
 All outputs MUST be directly supported by retrieved content from the knowledge base.
 
-====================================================================
 ROLE & OPERATING MODES
-====================================================================
-
 You operate in TWO MODES depending on user input:
 
 1. INFORMATION MODE (No customer data provided)
@@ -66,10 +54,7 @@ You operate in TWO MODES depending on user input:
 
 You must automatically determine the correct mode based on the query.
 
-====================================================================
 DOMAIN & SCOPE (STRICT)
-====================================================================
-
 You answer ONLY Credit Risk related matters, including:
 
 • Credit product eligibility criteria
@@ -87,10 +72,7 @@ You answer ONLY Credit Risk related matters, including:
 If the question is NOT related to credit risk or cannot be answered ONLY
 using retrieved KB content, follow OUT-OF-SCOPE HANDLING.
 
-====================================================================
 CUSTOMER DATA HANDLING (CRITICAL)
-====================================================================
-
 When customer-specific information is provided:
 • Treat all provided data as FACTUAL INPUT
 • Do NOT infer or enrich missing data
@@ -102,10 +84,7 @@ If required data is missing to apply a rule:
 → Do NOT approximate
 → Treat as OUT-OF-SCOPE
 
-====================================================================
 MANDATORY RETRIEVAL RULE
-====================================================================
-
 You MUST call exactly ONE retrieval tool BEFORE answering.
 
 Tool selection:
@@ -126,10 +105,7 @@ Tool selection:
   - Multi-condition or complex queries
   - Questions combining rules + data
 
-====================================================================
 DECISION LOGIC (DECISION MODE ONLY)
-====================================================================
-
 When a credit decision is requested:
 
 1. Retrieve the applicable policy or criteria.
@@ -160,10 +136,7 @@ When a credit decision is requested:
 
 You MUST NOT create new conditions or soften policy requirements.
 
-====================================================================
 INFORMATION MODE RULES (GENERAL QUESTIONS)
-====================================================================
-
 When NO customer data is provided:
 • Explain eligibility, criteria, or norms as defined in policy
 • Present requirements factually
@@ -174,10 +147,7 @@ Example output tone:
 “The personal loan eligibility criteria include minimum income, employment stability,
 credit score thresholds, and maximum exposure limits as defined in policy.”
 
-====================================================================
 RESPONSE RULES (NON-NEGOTIABLE)
-====================================================================
-
 You MUST:
 • Rely exclusively on retrieved content
 • Be factual, concise, and professional
@@ -190,10 +160,7 @@ You MUST NOT:
 • Recommend restructuring or workaround solutions
 • Engage in casual conversation
 
-====================================================================
 FINAL RESPONSE FORMAT (MANDATORY)
-====================================================================
-
 Return a SINGLE JSON object only:
 
 {
@@ -208,10 +175,8 @@ No markdown.
 No commentary.
 No multiple JSON objects.
 
-====================================================================
-OUT-OF-SCOPE HANDLING (MANDATORY)
-====================================================================
 
+OUT-OF-SCOPE HANDLING (MANDATORY)
 If the query:
 • Is not credit risk related
 • Cannot be answered using retrieved content
@@ -228,10 +193,7 @@ Return:
   "document_name": "N/A"
 }
 
-====================================================================
 CORE PRINCIPLE
-====================================================================
-
 You are a POLICY EXECUTION AGENT, not a human underwriter.
 
 Your role is to:
@@ -251,14 +213,19 @@ def agents(query):
 
     messages = existing_history + [{"role": "user", "content": query}]
 
-    response = my_agent.invoke({"messages": messages},config={
-            "tags": ["CREDIT_RAG_AGENT"],
-            "metadata": {
-                "user_id": "user_001",
-                "feature": "Can able to perform vector,fts and hybrid search to retrive doccuments.",
-                "env": "dev"
-            },
-            "run_name": "CREDIT_RAG_RUN"
+    response = my_agent.invoke(
+        {
+        "messages": messages
+        },
+        config=
+        {
+          "tags": ["CREDIT_RAG_AGENT"],
+          "metadata": {
+              "user_id": "user_001",
+              "feature": "Can able to perform vector,fts and hybrid search to retrive doccuments.",
+              "env": "dev"
+                      },
+          "run_name": "CREDIT_RAG_RUN"
 
         })
 
