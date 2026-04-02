@@ -2,14 +2,7 @@ from src.core.db import get_vector_store
 from src.api.v1.tools.fts_search_tool import fts_search
 from langchain_core.tools import tool
 
-
 def _hybrid_search(query: str, k: int = 5) -> list[dict]:
-   """
-    Use this tool when the query needs both keyword and semantic understanding.
-    Best for long, complex, or ambiguous HR-related questions.
-    Combines exact term matching with contextual similarity.
-    Use when unsure which single search method will perform best.
-   """
    vector_store = get_vector_store()
    vector_docs = vector_store.similarity_search(query, k=k)
    fts_docs    = fts_search(query, k=k)

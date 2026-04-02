@@ -19,9 +19,38 @@ llm = ChatGoogleGenerativeAI(
     max_retries = 4
 )
 
+@tool
+def fts_search_tool(query: str):
+    """
+    It is best suited for identifying specific credit risk policy names, frameworks, models, acronyms, fixed terminology, document titles, and section headers.
+    Use this tool when the user query contains precise or well‑defined credit risk terms (e.g., PD, LGD, exposure limits, policy names).
+    Do not use this tool for conversational, explanatory, or scenario‑based credit risk questions.
+   """
+    return fts_search(query)
+
+@tool
+def hybrid_search_tool(query: str):
+    """
+    Use this tool when the query requires both exact credit risk terminology matching and contextual understanding.
+    It is best suited for long, complex, or ambiguous credit risk questions, including scenario‑based or decision‑oriented queries.
+    This tool combines keyword‑based search with semantic similarity to retrieve the most relevant credit risk policies and rules.
+    Use this tool when it is unclear whether a purely keyword or purely semantic search would be sufficient.
+   """
+    return _hybrid_search(query)
+
+@tool
+def query_documents_tool(query: str):
+    """
+    Use this tool for semantic similarity search over Credit Risk documents.
+    It is best suited for natural‑language and concept‑based credit risk questions.
+    Use this tool when the user is seeking explanations, interpretations of policy intent, or descriptions of credit risk processes and frameworks.
+    Do not rely on exact keyword or acronym matching when using this tool; focus on conceptual relevance instead.
+   """
+    return query_documents(query)
+
 my_agent = create_agent(
     model = llm,
-    tools = [fts_search,_hybrid_search,query_documents],
+    tools = [fts_search_tool,hybrid_search_tool,query_documents_tool],
     response_format = AIResponse,
     system_prompt = """
 You are a Credit Risk Analysis and Decisioning RAG Assistant.

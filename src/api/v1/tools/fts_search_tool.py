@@ -7,14 +7,7 @@ from langchain_core.tools import tool
 load_dotenv()
 _raw_conn = os.getenv("SQLALCHEMY_DATABASE_URL", "").replace("postgresql+psycopg", "postgresql")
 
-
 def fts_search(query: str, k: int = 5, collection_name: str = "hr_support_desk") -> list[dict]:
-   """
-    Use this tool to retrieve HR information using exact keyword matching.
-    Best suited for policy names, acronyms, fixed terms, and titles.
-    Use when the user query contains specific or known HR terminology.
-    Do not use for conversational or explanatory questions
-   """
    sql = """
        SELECT
            e.document                                               AS content,
