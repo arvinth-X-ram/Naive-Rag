@@ -24,6 +24,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
 from langchain_postgres import PGVector
 from src.core.db import get_vector_store
+from sqlalchemy import create_engine, text
 
 
 load_dotenv(override=True)
@@ -40,6 +41,13 @@ def load_document(file_path):
     else:
         raise ValueError(f"Unsupported file extension: {ext}")
     return loader.load(),ext
+
+def index_add():
+    engine = create_engine(os.getenv("SQLALCHEMY_DATABASE_URL"))
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE langchain_pg_embedding ALTER COLUMN embedding TYPE vector(1536)"))
+        conn.execute(text("CREATE INDEX ON langchain_pg_embedding USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"))
+        conn.commit()
 
 def ingest_pdf(file_path):
     docs,ext = load_document(file_path)
@@ -63,14 +71,16 @@ def ingest_pdf(file_path):
     chunks = splitter.split_documents(docs)
     print("Chunks: "+str(len(chunks)))
 
-    # embeddings = GoogleGenerativeAIEmbeddings(
-    #     model = os.getenv("GOOGLE_EMBEDDINGS_MODEL"),
-    #     api_key = os.getenv("GOOGLE_API_KEY")
-
-    embeddings = OpenAIEmbeddings(
-        model = os.getenv("OPENAI_EMBEDDING_MODEL"),
-        api_key = os.getenv("OPENAI_API_KEY")
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model = os.getenv("GOOGLE_EMBEDDINGS_MODEL"),
+        api_key = os.getenv("GOOGLE_API_KEY")
     )
+
+    # embeddings = OpenAIEmbeddings(
+    #     model = os.getenv("OPENAI_EMBEDDING_MODEL"),
+    #     api_key = os.getenv("OPENAI_API_KEY")
+    # )
     vector_store = get_vector_store("Credit_Rag_System")
     vector_store.add_documents(chunks)
+    index_add()
     print("==== Ingestion completed ====")
