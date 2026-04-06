@@ -593,4 +593,4 @@ selection = st.sidebar.radio("Go to", ["Admin", "User"])
 if selection == "Admin":
     admin_page()
 elif selection == "User":
-    user_page()
+    user_page()  
